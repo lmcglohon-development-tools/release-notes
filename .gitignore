@@ -5,6 +5,7 @@
 *.out
 *.json
 /.config
+/.DS_Store
 /coverage/
 /InstalledFiles
 /pkg/
