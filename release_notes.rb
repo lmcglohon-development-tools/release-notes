@@ -2,7 +2,6 @@ require 'date'
 require 'json'
 require 'net/http'
 
-
 class ReleaseNotes
 
   attr_reader :git_log_location, :first_line, :start_date, :description, :config, :schema_desc
@@ -47,41 +46,14 @@ class ReleaseNotes
     file.puts "## JIRA Tickets and Pull Requests Completed\n\n"
     comm_contrib.sort.each do | c |
       c.gsub!("\#", '')
+      # TODO: authenticate because of rate limiting when not authenticated
       url = "https://api.github.com/repos/archivesspace/archivesspace/pulls/#{c}"
       uri = URI(url)
       response = Net::HTTP.get(uri)
       puls = JSON.parse(response)
-      puts puls["title"]
+      puts puls.inspect
       file.puts "  * Pull Request #{c} #{puls["title"]}\n"
     end
     file.close
   end
-end
-
-rn = ReleaseNotes.new('/Users/lyrasis/Desktop/ASpaceVersions/check-new-master/archivesspace', 'v2.8.0', '2019-10-06')
-
-dt = Date.today
-loc_for_log = "/Users/lyrasis/Desktop/StatisticsAndTechLeadTools/tools/release-notes/pretty_git_log_"
-
-pretty_print_log = "#{loc_for_log}#{dt}.txt"
-`rm -f "#{pretty_print_log}"`
-
-`git -C "#{rn.git_log_location}" log --pretty='%cn|%cd|%s|%b' --since="#{rn.start_date}" > "#{pretty_print_log}"`
-
-prs = rn.parse_log(pretty_print_log)
-
-comm_contrib = []
-prs.each do | n |
-  comm_contrib << n[:subject].split[3] if n[:subject].split[3].length > 2
-end
-
-rn.write_markdown('2.8.0', comm_contrib)
-
-comm_contrib.each do | c |
-  c.gsub!("\#", '')
-  url = "https://api.github.com/repos/archivesspace/archivesspace/pulls/#{c}"
-  uri = URI(url)
-  response = Net::HTTP.get(uri)
-  puls = JSON.parse(response)
-  puts puls["title"]
 end
